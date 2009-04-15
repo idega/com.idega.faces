@@ -2,16 +2,14 @@
 
 <projectDescription>
   <name>com.idega.faces</name>
-  <comment>
-  </comment>
+  <comment></comment>
   <projects>
     <project>com.idega.core</project>
   </projects>
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.jdt.core.javabuilder</name>
-      <arguments>
-      </arguments>
+      <arguments></arguments>
     </buildCommand>
   </buildSpec>
   <natures>
