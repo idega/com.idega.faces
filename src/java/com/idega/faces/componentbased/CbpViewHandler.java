@@ -14,6 +14,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.Locale;
+
 import javax.faces.FacesException;
 import javax.faces.application.Application;
 import javax.faces.application.StateManager;
@@ -26,13 +27,17 @@ import javax.faces.render.RenderKitFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.myfaces.application.MyfacesStateManager;
 import org.apache.myfaces.application.jsp.JspViewHandlerImpl;
 import org.apache.myfaces.shared_impl.renderkit.html.HtmlLinkRendererBase;
+
+import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.presentation.IWContext;
 import com.idega.repository.data.RefactorClassRegistry;
+import com.idega.util.StringUtil;
 
 /**
  * <p>
@@ -68,7 +73,10 @@ public class CbpViewHandler extends ViewHandler {
 		// default content-type.
 		// So we'll set it explicitly.
 		HttpServletResponse response = (HttpServletResponse) ctx.getExternalContext().getResponse();
-		response.setContentType("text/html");
+		String contentType = response.getContentType();
+		if (StringUtil.isEmpty(contentType) || contentType.indexOf(MimeTypeUtil.HTML_TYPE) == -1) {
+			response.setContentType(MimeTypeUtil.HTML_TYPE);
+		}
 		
 		// make sure to set the responsewriter
 		initializeResponseWriter(ctx);		
