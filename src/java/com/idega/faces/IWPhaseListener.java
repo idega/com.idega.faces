@@ -79,6 +79,9 @@ public class IWPhaseListener implements PhaseListener {
 				// findNextInstanceOfNotPresentationObject(iwc,po);
 				for (Iterator iter = po.getFacetsAndChildren(); iter.hasNext();) {
 					UIComponent child = (UIComponent) iter.next();
+					if (child == null)  {
+						break;
+					}						
 					callMain(iwc, child);
 				}
 			} else {
@@ -88,6 +91,9 @@ public class IWPhaseListener implements PhaseListener {
 					for (Iterator iter = comp.getFacetsAndChildren(); iter
 							.hasNext();) {
 						UIComponent child = (UIComponent) iter.next();
+						if (child == null)  {
+							break;
+						}
 						callMain(iwc, child);
 					}
 				} catch (Exception e) {
