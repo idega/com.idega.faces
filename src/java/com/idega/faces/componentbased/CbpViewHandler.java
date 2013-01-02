@@ -321,10 +321,12 @@ public class CbpViewHandler extends ViewHandler {
 				if(comp instanceof UIViewRoot){
 					root = (UIViewRoot)comp;
 				}
-				else{
+				else {
 					root = new UIViewRoot();
 					root.setViewId(viewId);
-					root.getChildren().add(comp);
+					if (comp != null) {
+						root.getChildren().add(comp);
+					}
 				}
 				//set the locale
 				root.setLocale(calculateLocale(ctx));
