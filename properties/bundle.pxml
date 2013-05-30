@@ -9,7 +9,21 @@
     <key>
       <name>iw_components</name>
       <value>
-        <map />
+        <map>
+          <key>
+            <name>com.idega.facelets.ui.FaceletComponent</name>
+            <value>
+              <map>
+                <key>
+                  <name>component_property_file</name>
+                  <type>java.lang.String</type>
+                  <value>com.idega.facelets.ui.FaceletComponent.pxml</value>
+                </key>
+              </map>
+            </value>
+            <type>map</type>
+          </key>
+        </map>
       </value>
       <type>map</type>
     </key>
