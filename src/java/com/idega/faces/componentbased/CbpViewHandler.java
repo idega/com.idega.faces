@@ -46,9 +46,9 @@ import com.idega.util.CoreConstants;
  * <br>
  * </p>
  * Copyright (C) idega software 2004-2005<br>
- * 
+ *
  * Last modified: $Date: 2009/04/17 14:11:13 $ by $Author: civilis $
- * 
+ *
  * @author <a href="mailto:tryggvil@idega.com">tryggvil</a>
  * @version $Revision: 1.10 $
  */
@@ -57,45 +57,46 @@ public class CbpViewHandler extends ViewHandler {
 	private static Log log = LogFactory.getLog(CbpViewHandler.class);
 
 	private ViewHandler parentViewHandler;
-	
+
 //	private StateManager stateManager;
-	
+
 	/**
 	 * Default constructor
 	 */
 	public CbpViewHandler() {
 //		stateManager = new CbpStateManagerImpl();
 	}
-	
+
 	public CbpViewHandler(ViewHandler parentViewHandler) {
 		//super(parentViewHandler);
 		setParentViewHandler(parentViewHandler);
 	}
-	
+
 	/**
 	 * @see javax.faces.application.ViewHandler#renderView(javax.faces.context.FacesContext, javax.faces.component.UIViewRoot)
 	 */
+	@Override
 	public void renderView(FacesContext ctx, UIViewRoot viewRoot) throws IOException, FacesException {
 		// Apparently not all versions of tomcat have the same
 		// default content-type.
 		// So we'll set it explicitly.
 		HttpServletResponse response = (HttpServletResponse) ctx.getExternalContext().getResponse();
 		response.setContentType("text/html");
-		
+
 		// make sure to set the responsewriter
 		initializeResponseWriter(ctx);
-		
+
 		if(viewRoot == null) {
 			throw new RuntimeException("CbpViewHandler: No component tree is available !");
 		}
-		
+
 /*		if (ctx instanceof BridgeFacesContext) {
 			D2DViewHandler view = new D2DViewHandler();
 			view.renderView(ctx, viewRoot);
 			return;
 		}
 */
-		
+
 		String renderkitId = viewRoot.getRenderKitId();
 		if (renderkitId == null) {
 			renderkitId = calculateRenderKitId(ctx);
@@ -108,7 +109,7 @@ public class CbpViewHandler extends ViewHandler {
 			out.startDocument();
 			renderComponent(ctx.getViewRoot(),ctx);
 			out.endDocument();
-			
+
 
 			try {
 				writeOutResponseAndClientState(ctx);
@@ -124,8 +125,8 @@ public class CbpViewHandler extends ViewHandler {
 		//}
 	}
 
-	
-	
+
+
 	public void writeOutResponseAndClientState(FacesContext facesContext) throws JspException
 	    {
 	        if (log.isTraceEnabled()) {
@@ -162,7 +163,7 @@ public class CbpViewHandler extends ViewHandler {
 	                    //String bodyStr = bodyContent.getString();
 	                    String bodyStr = getOutputAsString(bufferWriter);
 	                    int form_marker = bodyStr.indexOf(JspViewHandlerImpl.FORM_STATE_MARKER);
-	                    
+
 //	                    TODO: myfaces commented this out with following comment, so behavior here should be changed (civilis)
 	                    /* this one is never used
 	                    public static final String URL_STATE_MARKER      = "JSF_URL_STATE_MARKER=DUMMY";
@@ -208,7 +209,7 @@ public class CbpViewHandler extends ViewHandler {
 	                //{
 	                //    bodyContent.writeOut(getPreviousOut());
 	                //}
-	                    
+
 	    				//Now we do endDocument on the real responseWriter.
 	                 realWriter.endDocument();
 	    				realWriter.flush();
@@ -219,12 +220,12 @@ public class CbpViewHandler extends ViewHandler {
 	            log.debug("Error writing serialized page", e);
 	            //System.err.println("CbpViewHandler.writeOutResponseAndClientState(): "+e.getClass().getName()+" : "+e.getMessage());
 	            log.error(""+e.getClass().getName()+" : "+e.getMessage());
-	            
+
 	            System.out.println("______________xxxxxxxxxxxxxxx1");
 	            e.printStackTrace();
 	            System.out.println("______________xxxxxxxxxxxxxxx2");
 	            //throw new JspException(e);
-                
+
                 try {
                 		ResponseWriter bufferWriter = facesContext.getResponseWriter();
 					bufferWriter.flush();
@@ -233,13 +234,13 @@ public class CbpViewHandler extends ViewHandler {
 	                facesContext.setResponseWriter(realWriter);
 	                String bodyStr = getOutputAsString(bufferWriter);
 	                realWriter.write(bodyStr);
-	                
+
 				}
 				catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-	            
+
 	        }
 	        if (log.isTraceEnabled()) {
 						log.trace("leaving ViewTag.doAfterBody");
@@ -247,7 +248,7 @@ public class CbpViewHandler extends ViewHandler {
 					}
 	    }
 
-	
+
 	/**
 	 * <p>
 	 * Get the content that was buffered to the "fake" writer.
@@ -256,9 +257,9 @@ public class CbpViewHandler extends ViewHandler {
 	 * @return
 	 */
 	private String getOutputAsString(ResponseWriter bufferWriter) {
-		
+
 		if(bufferWriter instanceof HtmlStringBufferedResponseWriter) {
-		
+
 			HtmlStringBufferedResponseWriter responseWriter = (HtmlStringBufferedResponseWriter)bufferWriter;
 			StringWriter writer = responseWriter.getStringWriter();
 			//BlockCacheResponseWriter blockWriter = (BlockCacheResponseWriter)bufferWriter;
@@ -290,11 +291,12 @@ public class CbpViewHandler extends ViewHandler {
 	/**
 	 * @see javax.faces.application.ViewHandler#restoreView(javax.faces.context.FacesContext, java.lang.String)
 	 */
+	@Override
 	public UIViewRoot restoreView(FacesContext ctx, String viewId) {
 //		if (getStateManager().isSavingStateInClient(ctx)) {
 //			//get the state from the client
 			return getStateManager().restoreView(ctx,viewId, calculateRenderKitId(ctx));
-//		} 
+//		}
 //		UIViewRoot currentViewRoot = (UIViewRoot) ctx.getExternalContext().getSessionMap().get(SESSION_KEY_CURRENT_VIEW);
 //		if (currentViewRoot == null) {
 //			return null;
@@ -307,10 +309,11 @@ public class CbpViewHandler extends ViewHandler {
 	protected ViewManager getViewManager(FacesContext context){
 		return ViewManager.getInstance(context);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see net.sourceforge.smile.application.CbpViewHandlerImpl#createView(javax.faces.context.FacesContext, java.lang.String)
 	 */
+	@Override
 	public UIViewRoot createView(FacesContext ctx, String viewId) {
 		//return getParentViewHandler().createView(arg0, arg1);
 		ViewNode node = getViewManager(ctx).getViewNodeForContext(ctx);
@@ -342,7 +345,7 @@ public class CbpViewHandler extends ViewHandler {
 			throw new RuntimeException ("No parent ViewHandler");
 		}
 	}
-	
+
 	/**
 	 * @see javax.faces.application.ViewHandler#createView(javax.faces.context.FacesContext, java.lang.String)
 	 */
@@ -350,15 +353,15 @@ public class CbpViewHandler extends ViewHandler {
 
 		UIViewRoot ret = new UIViewRoot();
 		ret.setViewId(viewId);
-		
+
 		// TODO : Hack to allow unit tests to select empty views
 		if(viewId.startsWith("unittesttree.")) {
-			return ret;			
+			return ret;
 		}
 
 		try {
 			Class descriptorClazz = getDescriptorClassNameForViewId(viewId);
-			if(descriptorClazz == null) { 
+			if(descriptorClazz == null) {
 				// JSP page....
 			} else {
 				if(Page.class.isAssignableFrom(descriptorClazz)) {
@@ -381,7 +384,7 @@ public class CbpViewHandler extends ViewHandler {
 
 		//set the view on the session
 		//ctx.getExternalContext().getSessionMap().put(net.sourceforge.smile.application.CbpStateManagerImpl.SESSION_KEY_CURRENT_VIEW,ret);
-		
+
 		return ret;
 	}
 
@@ -397,6 +400,7 @@ public class CbpViewHandler extends ViewHandler {
 	/**
 	 * @see javax.faces.application.ViewHandler#writeState(javax.faces.context.FacesContext)
 	 */
+	@Override
 	public void writeState(FacesContext ctx) throws IOException {
 		StateManager.SerializedView serializedView = null;
 		if (null != (serializedView = getStateManager().saveSerializedView(ctx))) {
@@ -412,20 +416,21 @@ public class CbpViewHandler extends ViewHandler {
 		if (viewId != null && viewId.startsWith("/")) {
 			return viewId.substring(1);
 		} else {
-			return viewId;			
+			return viewId;
 		}
 	}
 
 	/**
 	 * @see javax.faces.application.ViewHandler#calculateLocale(javax.faces.context.FacesContext)
 	 */
+	@Override
 	public Locale calculateLocale(FacesContext ctx) {
 		IWContext iwc = IWContext.getIWContext(ctx);
 		return iwc.getCurrentLocale();
-		
+
 	}
-	
-	
+
+
 
 	/**
 	 * make sure a ResponseWriter instance is set on the component
@@ -441,7 +446,7 @@ public class CbpViewHandler extends ViewHandler {
 		//HttpServletResponse response = (HttpServletResponse) ctx.getExternalContext().getResponse();
 		String contextType = "text/html";
 		String characterEncoding = request.getCharacterEncoding();
-		
+
 /*		if (ctx instanceof BridgeFacesContext) {	// ICEfaces
 			BridgeFacesContext iceFacesContext = (BridgeFacesContext) ctx;
 			try {
@@ -459,43 +464,38 @@ public class CbpViewHandler extends ViewHandler {
 			ctx.setResponseWriter(responseWriter);
 		//} catch (IOException e) {
 		//	throw new FacesException(e.getMessage(),e);
-		//}		
+		//}
 	}
-	
+
 	/**
 	 * Recursive operation to render a specific component in the view tree.
-	 * 
+	 *
 	 * @param component
 	 * @param context
 	 */
 	private void renderComponent(UIComponent component, FacesContext ctx) {
 		try {
 			component.encodeBegin(ctx);
-			if(component.getRendersChildren()) {
+			if (component.getRendersChildren()) {
 				component.encodeChildren(ctx);
 			} else {
-				Iterator it;
-				UIComponent currentChild;
-				it = component.getChildren().iterator();
-				while(it.hasNext()) {
-					currentChild = (UIComponent) it.next();
-					renderComponent(currentChild,ctx);
+				for (Iterator<UIComponent> it = component.getChildren().iterator(); it.hasNext();) {
+					UIComponent currentChild = it.next();
+					renderComponent(currentChild, ctx);
 				}
-			}		
-			//if (component instanceof Screen) {
-			//	writeState(ctx); 
-			//}
+			}
+
 			component.encodeEnd(ctx);
 		} catch(IOException e) {
 			log.error("Component <" + component.getId() + "> could not render ! Continuing rendering of view <" + ctx.getViewRoot().getViewId() + ">...");
 		}
 	}
-	
+
 	/**
 	 * This function is responsible for finding the descripto class for a given
 	 * viewId. The policy may change over time, like supporting multiple packages
 	 * or mory flexible mapping of viewIds to descriptor classes,etc..
-	 *  
+	 *
 	 * @param viewId
 	 * @return the descriptor class for a given viewId, or null if no descriptor found.
 	 */
@@ -503,14 +503,14 @@ public class CbpViewHandler extends ViewHandler {
 		Class ret = null;
 		String className;
 		FacesContext ctx = FacesContext.getCurrentInstance();
-				
-		// TODO : We should implement a configurable scheme with more than one package.	
+
+		// TODO : We should implement a configurable scheme with more than one package.
 		if(viewId.endsWith(".jsf") || viewId.endsWith(".jsp")) {
 			String shortClassName = viewId.substring(0,viewId.length()-4);
 			if(shortClassName.startsWith("/")) {
 				shortClassName = shortClassName.substring(1,shortClassName.length());
 			}
-			
+
 			className = getDescriptorPackage(ctx) + shortClassName + getDescriptorPostfix(ctx);
 			try {
 				ret = RefactorClassRegistry.forName(className);
@@ -518,7 +518,7 @@ public class CbpViewHandler extends ViewHandler {
 				ret = null;
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -530,16 +530,16 @@ public class CbpViewHandler extends ViewHandler {
 	private String getDescriptorPackage(FacesContext context) {
 		String ret = "";	// Default package.
 		String temp;
-		
+
 		// Try to determine descriptor package...
-		temp = context.getExternalContext().getInitParameter("net.sourceforge.smile.descriptor.package"); 
+		temp = context.getExternalContext().getInitParameter("net.sourceforge.smile.descriptor.package");
 		if(temp != null) {
 			ret = temp;
 			if(!ret.endsWith(".")) {
 				ret = ret + ".";
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -551,19 +551,20 @@ public class CbpViewHandler extends ViewHandler {
 	private String getDescriptorPostfix(FacesContext context) {
 		String ret = "";	// Default.
 		String temp;
-		
+
 		// Try to determine descriptor package...
-		temp = context.getExternalContext().getInitParameter("net.sourceforge.smile.descriptor.postfix"); 
+		temp = context.getExternalContext().getInitParameter("net.sourceforge.smile.descriptor.postfix");
 		if(temp != null) {
 			ret = temp;
 		}
-		
+
 		return ret;
 	}
 
 	/**
 	 * @see javax.faces.application.ViewHandler#calculateRenderKitId(javax.faces.context.FacesContext)
 	 */
+	@Override
 	public String calculateRenderKitId(FacesContext ctx) {
 		return RenderKitFactory.HTML_BASIC_RENDER_KIT;
 	}
@@ -571,6 +572,7 @@ public class CbpViewHandler extends ViewHandler {
 	/**
 	 * @see javax.faces.application.ViewHandler#getActionURL(javax.faces.context.FacesContext, java.lang.String)
 	 */
+	@Override
 	public String getActionURL(FacesContext ctx, String viewId) {
 		// TODO Look into this:
 		//return ctx.getExternalContext().encodeActionURL(viewId);
@@ -578,23 +580,24 @@ public class CbpViewHandler extends ViewHandler {
 		if (viewId != null && viewId.startsWith("/")) {
 			return viewId.substring(1);
 		} else {
-			return viewId;			
+			return viewId;
 		}
 	}
 
 	/**
 	 * @see javax.faces.application.ViewHandler#getResourceURL(javax.faces.context.FacesContext, java.lang.String)
 	 */
+	@Override
 	public String getResourceURL(FacesContext ctx, String path) {
 		// TODO Auto-generated method stub
 		String resourceUrl = ctx.getExternalContext().encodeResourceURL(path);
 		return resourceUrl;
 	}
-	
+
 	protected ViewHandler getParentViewHandler(){
 		return this.parentViewHandler;
 	}
-	
+
 	protected void setParentViewHandler(ViewHandler viewHandler){
 		this.parentViewHandler=viewHandler;
 	}
