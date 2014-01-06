@@ -30,6 +30,7 @@ public class IWFaceletsViewHandler extends FaceletViewHandler {
 		super(wrapped_vh);
 	}
 	
+	@Override
 	public void renderView(FacesContext context, UIViewRoot viewToRender) throws IOException, FacesException {
 		
 		//Changing the ViewId so it is read from the ViewNode structure:
@@ -48,6 +49,7 @@ public class IWFaceletsViewHandler extends FaceletViewHandler {
 		return ViewManager.getInstance(iwma).getViewNodeForContext(context);
 	}
 	
+	@Override
 	public UIViewRoot restoreView(FacesContext context, String viewId) {
 		ViewNode node = getNode(context);
 		String newViewId=viewId;
@@ -59,6 +61,7 @@ public class IWFaceletsViewHandler extends FaceletViewHandler {
 		return super.restoreView(context, newViewId);
 	}
 	
+	@Override
 	public UIViewRoot createView(FacesContext context, String viewId) {
 		ViewNode node = getNode(context);
 		String newViewId = viewId;
@@ -69,6 +72,7 @@ public class IWFaceletsViewHandler extends FaceletViewHandler {
 		return super.createView(context, newViewId);
 	}
 	
+	@Override
 	public String getActionURL(FacesContext context, String viewId) {
 		return FacesUtil.getRequestUri(context);
 	}

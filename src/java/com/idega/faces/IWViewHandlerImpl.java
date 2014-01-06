@@ -257,4 +257,12 @@ public class IWViewHandlerImpl extends ViewHandler{
 		return this.viewManager;
 	}
 
+	public ViewHandler getFaceletsViewHandler() {
+		return faceletsViewHandler;
+	}
+
+	public void setFaceletsViewHandler(ViewHandler faceletsViewHandler) {
+		this.faceletsViewHandler = faceletsViewHandler;
+	}
+
 }
