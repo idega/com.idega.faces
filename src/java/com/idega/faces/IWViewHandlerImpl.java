@@ -69,7 +69,8 @@ public class IWViewHandlerImpl extends ViewHandler{
 	}
 
 	protected void updateViewManagerViewHandler(IWMainApplication iwma){
-		//	This updates the viewhandler Instance that the root viewnode has. The ViewHandler before this is just the system ViewHandler
+		//This updates the viewhandler Instance that the root viewnode has.
+		// the ViewHandler before this is just the system ViewHandler
 		this.viewManager = ViewManager.getInstance(iwma);
 		ViewNode root = this.viewManager.getApplicationRoot();
 		DefaultViewNode dRoot = (DefaultViewNode)root;
@@ -106,23 +107,72 @@ public class IWViewHandlerImpl extends ViewHandler{
 		}
 	}
 
-	protected ViewHandler getViewHandlerForContext(FacesContext ctx) {
+	private ViewHandler getViewHandlerForContext(FacesContext ctx) {
 		ViewNode node = getViewManager().getViewNodeForContext(ctx);
 
-		if (node != null)
-			if (node.getViewNodeBase() == ViewNodeBase.JSP)
-				return jspViewHandler;
-			else if (node.getViewNodeBase() == ViewNodeBase.FACELET)
-				return faceletsViewHandler;
-			else
-				return node.getViewHandler();
+		if (node != null) {
+			ViewNodeBase viewBase = node.getViewNodeBase();
+			if (viewBase == null) {
+				return null;
+			}
 
-		if (getParentViewHandler() != null)
+			switch (viewBase) {
+				case JSP: {
+					return jspViewHandler;
+				}
+				case FACELET : {
+					return faceletsViewHandler;
+				}
+				default: {
+					return node.getViewHandler();
+				}
+			}
+		}
+
+		if (getParentViewHandler() != null) {
 			return getParentViewHandler();
+		}
 
-		throw new RuntimeException ("No parent ViewHandler");
+		throw new RuntimeException("No parent ViewHandler");
 	}
 
+	/**
+	 * @param url
+	 * @return
+	 */
+	/*private ViewHandler getViewHandlerForUrl(String url,FacesContext ctx) {
+
+		ViewNode node = getViewManager().getViewNodeForUrl(url);
+		if(node!=null){
+			if(node.isJSP()){
+				//try {
+					//HttpServletRequest request = (HttpServletRequest)ctx.getExternalContext().getRequest();
+					//HttpServletResponse response = (HttpServletResponse)ctx.getExternalContext().getResponse();
+					//try {
+					//	request.setParameter("isForwarding","true");
+					//	request.getRequestDispatcher(node.getJSPURI()).include(request,response);
+					//}
+					//catch (ServletException e1) {
+					//	e1.printStackTrace();
+					//}
+					//String uri = node.getJSPURI();
+					//ctx.getViewRoot().setViewId(node.getJSPURI());
+					//ctx.getExternalContext().dispatch(uri);
+					return this.jspViewHandler;
+					//ctx.responseComplete();
+				//}
+				//catch (IOException e) {
+				//	e.printStackTrace();
+				//}
+			}
+			return node.getViewHandler();
+		}
+		return null;
+	}*/
+
+	/* (non-Javadoc)
+	 * @see javax.faces.application.ViewHandler#getActionURL(javax.faces.context.FacesContext, java.lang.String)
+	 */
 	@Override
 	public String getActionURL(FacesContext ctx, String viewId) {
 		ViewHandler realHandler = getViewHandlerForContext(ctx);
@@ -132,7 +182,9 @@ public class IWViewHandlerImpl extends ViewHandler{
 			throw new RuntimeException ("No ViewHandler Found for getActionURL");
 		}
 	}
-
+	/* (non-Javadoc)
+	 * @see javax.faces.application.ViewHandler#getResourceURL(javax.faces.context.FacesContext, java.lang.String)
+	 */
 	@Override
 	public String getResourceURL(FacesContext ctx, String path) {
 		ViewHandler realHandler = getViewHandlerForContext(ctx);
@@ -209,6 +261,9 @@ public class IWViewHandlerImpl extends ViewHandler{
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.faces.application.ViewHandler#restoreView(javax.faces.context.FacesContext, java.lang.String)
+	 */
 	@Override
 	public UIViewRoot restoreView(FacesContext ctx, String viewId) {
 		FacesUtil.registerRequestBegin(ctx);
@@ -224,6 +279,9 @@ public class IWViewHandlerImpl extends ViewHandler{
 		}
 	}
 
+/* (non-Javadoc)
+	 * @see javax.faces.application.ViewHandler#writeState(javax.faces.context.FacesContext)
+	 */
 	@Override
 	public void writeState(FacesContext ctx) throws IOException {
 		ViewHandler realHandler = getViewHandlerForContext(ctx);
