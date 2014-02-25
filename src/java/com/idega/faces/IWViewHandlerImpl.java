@@ -107,7 +107,7 @@ public class IWViewHandlerImpl extends ViewHandler{
 		}
 	}
 
-	private ViewHandler getViewHandlerForContext(FacesContext ctx) {
+	protected ViewHandler getViewHandlerForContext(FacesContext ctx) {
 		ViewNode node = getViewManager().getViewNodeForContext(ctx);
 
 		if (node != null) {

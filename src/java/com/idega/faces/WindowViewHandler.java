@@ -84,7 +84,7 @@ public class WindowViewHandler extends CbpViewHandler{// CbpViewHandler {
 			}
 			else{
 				ret.setViewId(viewId);
-				Class descriptorClazz = null;
+				Class<?> descriptorClazz = null;
 				try {
 					descriptorClazz = getDescriptorClassNameForViewId(viewId);
 				} catch (ClassNotFoundException e) {
@@ -155,7 +155,7 @@ public class WindowViewHandler extends CbpViewHandler{// CbpViewHandler {
 		}
 		return false;
 	}
-	private Class getDescriptorClassNameForViewId(String viewId) throws ClassNotFoundException{
+	private Class<?> getDescriptorClassNameForViewId(String viewId) throws ClassNotFoundException{
 		String encryptedClassName = null;
 		//if(viewId.startsWith("/window")){
 		//	encryptedClassName = viewId.substring(11,viewId.length());
@@ -164,7 +164,7 @@ public class WindowViewHandler extends CbpViewHandler{// CbpViewHandler {
 			String[] urlArray= StringHandler.breakDownURL(viewId);
 			if(urlArray == null || urlArray.length<1){
 				//encryptedClassName = "6975";
-				Class defaultClass = RefactorClassRegistry.forName("com.idega.workspace.WorkspaceLoginPage");
+				Class<?> defaultClass = RefactorClassRegistry.forName("com.idega.workspace.WorkspaceLoginPage");
 				encryptedClassName = IWMainApplication.getEncryptedClassName(defaultClass);
 			}
 			else if(urlArray.length==1){
@@ -188,7 +188,7 @@ public class WindowViewHandler extends CbpViewHandler{// CbpViewHandler {
 		super.renderView(ctx,viewId);
 	}
 	
-	public Class getDefaultPageClass() throws ClassNotFoundException{
+	public Class<?> getDefaultPageClass() throws ClassNotFoundException{
 		return RefactorClassRegistry.forName("com.idega.workspace.WorkspaceLoginPage");
 		//return defaultPageClass;
 	}

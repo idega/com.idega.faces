@@ -35,6 +35,7 @@ import org.apache.myfaces.application.jsp.JspViewHandlerImpl;
 
 import com.idega.core.view.ViewManager;
 import com.idega.core.view.ViewNode;
+import com.idega.core.view.ViewNodeBase;
 import com.idega.presentation.IWContext;
 import com.idega.repository.data.RefactorClassRegistry;
 import com.idega.util.CoreConstants;
@@ -127,6 +128,7 @@ public class CbpViewHandler extends ViewHandler {
 
 
 
+	@SuppressWarnings("deprecation")
 	public void writeOutResponseAndClientState(FacesContext facesContext) throws JspException
 	    {
 	        if (log.isTraceEnabled()) {
@@ -139,7 +141,7 @@ public class CbpViewHandler extends ViewHandler {
 	            //{
 	                //FacesContext facesContext = FacesContext.getCurrentInstance();
 	                StateManager stateManager = facesContext.getApplication().getStateManager();
-	                StateManager.SerializedView serializedView = null;
+					StateManager.SerializedView serializedView = null;
 	                try{
 	                	serializedView = stateManager.saveSerializedView(facesContext);
 	                }
@@ -318,7 +320,7 @@ public class CbpViewHandler extends ViewHandler {
 		//return getParentViewHandler().createView(arg0, arg1);
 		ViewNode node = getViewManager(ctx).getViewNodeForContext(ctx);
 		if(node!=null){
-			if(node.isComponentBased()){
+			if (ViewNodeBase.COMPONENT == node.getViewNodeBase()) {
 				UIComponent comp = node.createComponent(ctx);
 				UIViewRoot root = null;
 				if(comp instanceof UIViewRoot){
@@ -360,7 +362,7 @@ public class CbpViewHandler extends ViewHandler {
 		}
 
 		try {
-			Class descriptorClazz = getDescriptorClassNameForViewId(viewId);
+			Class<?> descriptorClazz = getDescriptorClassNameForViewId(viewId);
 			if(descriptorClazz == null) {
 				// JSP page....
 			} else {
@@ -402,9 +404,9 @@ public class CbpViewHandler extends ViewHandler {
 	 */
 	@Override
 	public void writeState(FacesContext ctx) throws IOException {
-		StateManager.SerializedView serializedView = null;
-		if (null != (serializedView = getStateManager().saveSerializedView(ctx))) {
-			getStateManager().writeState(ctx,serializedView);
+		Object savedView = null;
+		if (null != (savedView = getStateManager().saveView(ctx))) {
+			getStateManager().writeState(ctx, savedView);
 		}
 	}
 
@@ -499,8 +501,8 @@ public class CbpViewHandler extends ViewHandler {
 	 * @param viewId
 	 * @return the descriptor class for a given viewId, or null if no descriptor found.
 	 */
-	private Class getDescriptorClassNameForViewId(String viewId) {
-		Class ret = null;
+	private Class<?> getDescriptorClassNameForViewId(String viewId) {
+		Class<?> ret = null;
 		String className;
 		FacesContext ctx = FacesContext.getCurrentInstance();
 

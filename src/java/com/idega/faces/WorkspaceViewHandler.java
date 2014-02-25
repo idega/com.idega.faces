@@ -24,7 +24,7 @@ public class WorkspaceViewHandler extends WindowViewHandler {
 		super(parentViewHandler);
 	}
 	
-	public Class getDefaultPageClass() throws ClassNotFoundException{
+	public Class<?> getDefaultPageClass() throws ClassNotFoundException{
 		return RefactorClassRegistry.forName("com.idega.webface.workspace.WorkspacePage");
 	}
 	

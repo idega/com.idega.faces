@@ -22,8 +22,10 @@ import com.idega.presentation.IWContext;
 import com.idega.presentation.PresentationObject;
 
 
-public class IWPhaseListener implements PhaseListener{
+public class IWPhaseListener implements PhaseListener {
 
+	private static final long serialVersionUID = 3748272864722865037L;
+	
 	private static Logger log = Logger.getLogger(IWPhaseListener.class.getName());
 	
 	/* (non-Javadoc)
@@ -83,7 +85,7 @@ public class IWPhaseListener implements PhaseListener{
 					}
 					//Disabled because in change of callMain() method, that doesn't recurse self down the tree:
 					//findNextInstanceOfNotPresentationObject(iwc,po);
-					for (Iterator iter = po.getFacetsAndChildren(); iter.hasNext();) {
+					for (Iterator<UIComponent> iter = po.getFacetsAndChildren(); iter.hasNext();) {
 						UIComponent child = (UIComponent) iter.next();
 						callMain(iwc,child);
 					}
@@ -92,7 +94,7 @@ public class IWPhaseListener implements PhaseListener{
 					//List children = comp.getChildren();
 					//for (Iterator iter = children.iterator(); iter.hasNext();) {
 					try{
-						for (Iterator iter = comp.getFacetsAndChildren(); iter.hasNext();) {
+						for (Iterator<UIComponent> iter = comp.getFacetsAndChildren(); iter.hasNext();) {
 							UIComponent child = (UIComponent) iter.next();
 							callMain(iwc,child);
 						}
@@ -120,7 +122,7 @@ public class IWPhaseListener implements PhaseListener{
 			//if(compClass.isAssignableFrom(PresentationObject.class)){
 				//List children = comp.getChildren();
 				//for (Iterator iter = children.iterator(); iter.hasNext();) {
-				for (Iterator iter = comp.getFacetsAndChildren(); iter.hasNext();) {
+				for (Iterator<UIComponent> iter = comp.getFacetsAndChildren(); iter.hasNext();) {
 					UIComponent child = (UIComponent) iter.next();
 					findNextInstanceOfNotPresentationObject(iwc,child);
 				}
@@ -129,7 +131,7 @@ public class IWPhaseListener implements PhaseListener{
 				//List children = comp.getChildren();
 				//for (Iterator iter = children.iterator(); iter.hasNext();) {
 				try{
-					for (Iterator iter = comp.getFacetsAndChildren(); iter.hasNext();) {
+					for (Iterator<UIComponent> iter = comp.getFacetsAndChildren(); iter.hasNext();) {
 						UIComponent child = (UIComponent) iter.next();
 						callMain(iwc,child);
 					}
