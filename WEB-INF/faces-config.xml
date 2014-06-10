@@ -18,5 +18,9 @@ version="1.2">
 		<component-type>AddResource</component-type>
 		<component-class>com.idega.facelets.ui.util.AddResource</component-class>
 	</component>
+	<component>
+		<component-type>classRenderer</component-type>
+		<component-class>com.idega.facelets.ui.ClassRenderer</component-class>
+	</component>
 
 </faces-config>

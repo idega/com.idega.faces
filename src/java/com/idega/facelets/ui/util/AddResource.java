@@ -27,6 +27,7 @@ public class AddResource extends IWBaseComponent {
 	private static final String resourcePathProperty= "resourcePath";
 	private String resourcePath;
 	private String resourceLocation = resourcePositionHeader;
+	private String resourceType;
 	
 	public String getResourcePath() {
 		return resourcePath;
@@ -74,9 +75,10 @@ public class AddResource extends IWBaseComponent {
 				resourceLocation = resourcePositionHeader;
 			
 			IWContext iwc = IWContext.getIWContext(context);
-			if(resourcePath.endsWith(javascriptFileExt))
+			String resourceType = getResourceType(resourcePath);
+			if(resourceType.equals("javascript"))
 				PresentationUtil.addJavaScriptSourceLineToHeader(iwc, resourcePath);
-			else if(resourcePath.endsWith(cssFileExt))
+			else if(resourceType.equals("css"))
 				PresentationUtil.addStyleSheetToHeader(iwc, resourcePath);
 		}
 	}
@@ -94,5 +96,20 @@ public class AddResource extends IWBaseComponent {
 		Object values[] = (Object[]) state;
 		super.restoreState(ctx, values[0]);
 		this.resourcePath = ((String) values[1]);
+	}
+
+	public String getResourceType(String resourcePath) {
+		if(resourceType != null){
+			return resourceType;
+		}
+		if(resourcePath.endsWith(javascriptFileExt))
+			resourceType = "javascript";
+		else if(resourcePath.endsWith(cssFileExt))
+			resourceType = "css";
+		return resourceType;
+	}
+
+	public void setResourceType(String resourceType) {
+		this.resourceType = resourceType;
 	}
 }

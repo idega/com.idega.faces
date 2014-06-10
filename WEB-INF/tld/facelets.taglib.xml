@@ -17,4 +17,10 @@
             <component-type>AddResource</component-type>
         </component>
     </tag>
+     <tag>
+        <tag-name>classRenderer</tag-name>
+        <component>
+            <component-type>classRenderer</component-type>
+        </component>
+    </tag>
 </facelet-taglib>
