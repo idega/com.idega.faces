@@ -14,6 +14,11 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.faces.FacesException;
 import javax.faces.application.Application;
@@ -28,17 +33,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.myfaces.application.MyfacesStateManager;
 import org.apache.myfaces.application.jsp.JspViewHandlerImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.builder.business.BuilderLogicWrapper;
+import com.idega.core.builder.business.BuilderService;
+import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.view.ViewManager;
 import com.idega.core.view.ViewNode;
 import com.idega.core.view.ViewNodeBase;
+import com.idega.presentation.HtmlPageRegion;
 import com.idega.presentation.IWContext;
 import com.idega.repository.data.RefactorClassRegistry;
 import com.idega.util.CoreConstants;
+import com.idega.util.expression.ELUtil;
 
 /**
  * <p>
@@ -55,21 +64,23 @@ import com.idega.util.CoreConstants;
  */
 public class CbpViewHandler extends ViewHandler {
 
-	private static Log log = LogFactory.getLog(CbpViewHandler.class);
-
+	private static Logger LOGGER = Logger.getLogger(CbpViewHandler.class.getName());
 	private ViewHandler parentViewHandler;
 
-//	private StateManager stateManager;
+	@Autowired
+	private BuilderLogicWrapper builderLogic;
 
-	/**
-	 * Default constructor
-	 */
+	private BuilderLogicWrapper getBuilderLogicWrapper() {
+		if (builderLogic == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		return builderLogic;
+	}
+
 	public CbpViewHandler() {
-//		stateManager = new CbpStateManagerImpl();
 	}
 
 	public CbpViewHandler(ViewHandler parentViewHandler) {
-		//super(parentViewHandler);
 		setParentViewHandler(parentViewHandler);
 	}
 
@@ -78,25 +89,16 @@ public class CbpViewHandler extends ViewHandler {
 	 */
 	@Override
 	public void renderView(FacesContext ctx, UIViewRoot viewRoot) throws IOException, FacesException {
-		// Apparently not all versions of tomcat have the same
-		// default content-type.
-		// So we'll set it explicitly.
+		// Apparently not all versions of tomcat have the same default content-type. So we'll set it explicitly.
 		HttpServletResponse response = (HttpServletResponse) ctx.getExternalContext().getResponse();
-		response.setContentType("text/html");
+		response.setContentType(MimeTypeUtil.MIME_TYPE_HTML);
 
-		// make sure to set the responsewriter
+		// make sure to set the response writer
 		initializeResponseWriter(ctx);
 
-		if(viewRoot == null) {
+		if (viewRoot == null) {
 			throw new RuntimeException("CbpViewHandler: No component tree is available !");
 		}
-
-/*		if (ctx instanceof BridgeFacesContext) {
-			D2DViewHandler view = new D2DViewHandler();
-			view.renderView(ctx, viewRoot);
-			return;
-		}
-*/
 
 		String renderkitId = viewRoot.getRenderKitId();
 		if (renderkitId == null) {
@@ -105,47 +107,74 @@ public class CbpViewHandler extends ViewHandler {
 		viewRoot.setRenderKitId(renderkitId);
 
 		ResponseWriter out = ctx.getResponseWriter();
-		//try {
+		out.startDocument();
+		renderComponent(ctx.getViewRoot(),ctx);
+		out.endDocument();
 
-			out.startDocument();
-			renderComponent(ctx.getViewRoot(),ctx);
-			out.endDocument();
-
-
-			try {
-				writeOutResponseAndClientState(ctx);
-
-			}
-			catch (JspException e) {
-				//e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-
-		//} catch (RuntimeException e) {
-			//throw new SmileRuntimeException(e.getMessage(),e);
-		//}
+		try {
+			writeOutResponseAndClientState(ctx);
+		} catch (JspException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
+	private String getPathToComponent(UIComponent component, BuilderService builderService, String path) {
+		if (component == null) {
+			return path;
+		}
 
+		String name = component.getClass().getName();
+		String id = component.getId();
+		String instanceId = null;
+		try {
+			instanceId = builderService.getInstanceId(component);
+		} catch (Exception e) {}
+		String regionName = null;
+		if (component instanceof HtmlPageRegion) {
+			regionName = ((HtmlPageRegion) component).getRegionId();
+		}
+		path = path.concat("[Name: " + name + ", id: " + id + ", instance id: " + instanceId + (regionName == null ? CoreConstants.EMPTY : ", region: " + regionName + "]"));
+		return getPathToComponent(component.getParent(), builderService, path);
+	}
+
+	private void checkForDuplicateIds(FacesContext context, UIComponent component, Map<String, String> ids) {
+		String id = component.getId();
+		if (id != null) {
+			String name = component.getClass().getName();
+			if (ids.containsKey(id)) {
+				IWContext iwc = IWContext.getIWContext(context);
+				BuilderService builderService = getBuilderLogicWrapper().getBuilderService(iwc);
+				String path = getPathToComponent(component, builderService, CoreConstants.EMPTY);
+
+				String newId = "id_modified_for_" + id + CoreConstants.UNDER + UUID.randomUUID().toString();
+				LOGGER.warning("Component (class: '" + name + "', path: '" + path + "') with id '" + id + "' already exists! Assigning new id: '" + newId + "'");
+				component.setId(newId);
+				id = newId;
+			}
+			ids.put(id, name);
+		}
+
+		for (Iterator<UIComponent> it = component.getFacetsAndChildren(); it.hasNext();) {
+			UIComponent kid = it.next();
+			checkForDuplicateIds(context, kid, ids);
+		}
+	}
 
 	@SuppressWarnings("deprecation")
-	public void writeOutResponseAndClientState(FacesContext facesContext) throws JspException
-	    {
-	        if (log.isTraceEnabled()) {
-						log.trace("entering ViewTag.doAfterBody");
-					}
-	        try
-	        {
+	public void writeOutResponseAndClientState(FacesContext facesContext) throws JspException {
+		try {
+			Map<String, String> ids = new ConcurrentHashMap<String, String>();
+			checkForDuplicateIds(facesContext, facesContext.getViewRoot(), ids);
+
 	            //BodyContent bodyContent = getBodyContent();
 	            //if (bodyContent != null)
 	            //{
 	                //FacesContext facesContext = FacesContext.getCurrentInstance();
 	                StateManager stateManager = facesContext.getApplication().getStateManager();
 					StateManager.SerializedView serializedView = null;
-	                try{
+	                try {
 	                	serializedView = stateManager.saveSerializedView(facesContext);
-	                }
-	                catch(ArrayIndexOutOfBoundsException ar){
+	                } catch (ArrayIndexOutOfBoundsException ar) {
 	                		System.err.println("StateManager.saveSerializedView caused ArrayIndexOutOfBoundsException:");
 	                		ar.printStackTrace();
 	                		throw new JspException(ar);
@@ -197,7 +226,7 @@ public class CbpViewHandler extends ViewHandler {
 	                            }
 	                            else
 	                            {
-	                                log.error("Current StateManager is no MyfacesStateManager and does not support saving state in url parameters.");
+	                                LOGGER.warning("Current StateManager is no MyfacesStateManager and does not support saving state in url parameters.");
 	                            }
 //	                            lastMarkerEnd = url_marker + HtmlLinkRendererBase.URL_STATE_MARKER_LEN;
 //	                            url_marker = bodyStr.indexOf(HtmlLinkRendererBase.URL_STATE_MARKER, lastMarkerEnd);
@@ -216,20 +245,15 @@ public class CbpViewHandler extends ViewHandler {
 	                 realWriter.endDocument();
 	    				realWriter.flush();
 	            }
-	        }
-	        catch (Exception e)
-	        {
-	            log.debug("Error writing serialized page", e);
-	            //System.err.println("CbpViewHandler.writeOutResponseAndClientState(): "+e.getClass().getName()+" : "+e.getMessage());
-	            log.error(""+e.getClass().getName()+" : "+e.getMessage());
+	        } catch (Exception e) {
+	            LOGGER.log(Level.WARNING, "Error writing serialized page: " + e.getMessage(), e);
 
-	            System.out.println("______________xxxxxxxxxxxxxxx1");
-	            e.printStackTrace();
-	            System.out.println("______________xxxxxxxxxxxxxxx2");
-	            //throw new JspException(e);
+//	            System.out.println("______________xxxxxxxxxxxxxxx1");
+//	            e.printStackTrace();
+//	            System.out.println("______________xxxxxxxxxxxxxxx2");
 
                 try {
-                		ResponseWriter bufferWriter = facesContext.getResponseWriter();
+                	ResponseWriter bufferWriter = facesContext.getResponseWriter();
 					bufferWriter.flush();
 	                //now we switch to real output
 	                ResponseWriter realWriter = bufferWriter.cloneWithWriter(getRealResponseWriter(facesContext));
@@ -237,19 +261,12 @@ public class CbpViewHandler extends ViewHandler {
 	                String bodyStr = getOutputAsString(bufferWriter);
 	                realWriter.write(bodyStr);
 
-				}
-				catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
 				}
 
 	        }
-	        if (log.isTraceEnabled()) {
-						log.trace("leaving ViewTag.doAfterBody");
-						//return super.doAfterBody();
-					}
-	    }
-
+	}
 
 	/**
 	 * <p>
@@ -259,12 +276,9 @@ public class CbpViewHandler extends ViewHandler {
 	 * @return
 	 */
 	private String getOutputAsString(ResponseWriter bufferWriter) {
-
-		if(bufferWriter instanceof HtmlStringBufferedResponseWriter) {
-
+		if (bufferWriter instanceof HtmlStringBufferedResponseWriter) {
 			HtmlStringBufferedResponseWriter responseWriter = (HtmlStringBufferedResponseWriter)bufferWriter;
 			StringWriter writer = responseWriter.getStringWriter();
-			//BlockCacheResponseWriter blockWriter = (BlockCacheResponseWriter)bufferWriter;
 			return writer.getBuffer().toString();
 		} else
 			return CoreConstants.EMPTY;
@@ -281,11 +295,7 @@ public class CbpViewHandler extends ViewHandler {
 		HttpServletResponse response = (HttpServletResponse)facesContext.getExternalContext().getResponse();
 		try {
 			return response.getWriter();
-		}
-		catch (IOException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			//return null;
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -415,7 +425,7 @@ public class CbpViewHandler extends ViewHandler {
 	 */
 	public String getViewIdPath(FacesContext ctx, String viewId) {
 		// TODO implement conversion
-		if (viewId != null && viewId.startsWith("/")) {
+		if (viewId != null && viewId.startsWith(CoreConstants.SLASH)) {
 			return viewId.substring(1);
 		} else {
 			return viewId;
@@ -446,7 +456,7 @@ public class CbpViewHandler extends ViewHandler {
 		}
 		HttpServletRequest request = (HttpServletRequest) ctx.getExternalContext().getRequest();
 		//HttpServletResponse response = (HttpServletResponse) ctx.getExternalContext().getResponse();
-		String contextType = "text/html";
+		String contextType = MimeTypeUtil.MIME_TYPE_HTML;
 		String characterEncoding = request.getCharacterEncoding();
 
 /*		if (ctx instanceof BridgeFacesContext) {	// ICEfaces
@@ -489,7 +499,7 @@ public class CbpViewHandler extends ViewHandler {
 
 			component.encodeEnd(ctx);
 		} catch(IOException e) {
-			log.error("Component <" + component.getId() + "> could not render ! Continuing rendering of view <" + ctx.getViewRoot().getViewId() + ">...");
+			LOGGER.warning("Component <" + component.getId() + "> could not render ! Continuing rendering of view <" + ctx.getViewRoot().getViewId() + ">...");
 		}
 	}
 
@@ -509,7 +519,7 @@ public class CbpViewHandler extends ViewHandler {
 		// TODO : We should implement a configurable scheme with more than one package.
 		if(viewId.endsWith(".jsf") || viewId.endsWith(".jsp")) {
 			String shortClassName = viewId.substring(0,viewId.length()-4);
-			if(shortClassName.startsWith("/")) {
+			if(shortClassName.startsWith(CoreConstants.SLASH)) {
 				shortClassName = shortClassName.substring(1,shortClassName.length());
 			}
 
@@ -530,15 +540,15 @@ public class CbpViewHandler extends ViewHandler {
 	 * @return
 	 */
 	private String getDescriptorPackage(FacesContext context) {
-		String ret = "";	// Default package.
+		String ret = CoreConstants.EMPTY;	// Default package.
 		String temp;
 
 		// Try to determine descriptor package...
 		temp = context.getExternalContext().getInitParameter("net.sourceforge.smile.descriptor.package");
 		if(temp != null) {
 			ret = temp;
-			if(!ret.endsWith(".")) {
-				ret = ret + ".";
+			if(!ret.endsWith(CoreConstants.DOT)) {
+				ret = ret + CoreConstants.DOT;
 			}
 		}
 
@@ -551,7 +561,7 @@ public class CbpViewHandler extends ViewHandler {
 	 * @return
 	 */
 	private String getDescriptorPostfix(FacesContext context) {
-		String ret = "";	// Default.
+		String ret = CoreConstants.EMPTY;	// Default.
 		String temp;
 
 		// Try to determine descriptor package...
@@ -579,7 +589,7 @@ public class CbpViewHandler extends ViewHandler {
 		// TODO Look into this:
 		//return ctx.getExternalContext().encodeActionURL(viewId);
 		// TODO implement conversion
-		if (viewId != null && viewId.startsWith("/")) {
+		if (viewId != null && viewId.startsWith(CoreConstants.SLASH)) {
 			return viewId.substring(1);
 		} else {
 			return viewId;
