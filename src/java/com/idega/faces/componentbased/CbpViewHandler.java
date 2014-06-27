@@ -15,7 +15,6 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -146,12 +145,10 @@ public class CbpViewHandler extends ViewHandler {
 				BuilderService builderService = getBuilderLogicWrapper().getBuilderService(iwc);
 				String path = getPathToComponent(component, builderService, CoreConstants.EMPTY);
 
-				String newId = "id_modified_for_" + id + CoreConstants.UNDER + UUID.randomUUID().toString();
-				LOGGER.warning("Component (class: '" + name + "', path: '" + path + "') with id '" + id + "' already exists! Assigning new id: '" + newId + "'");
-				component.setId(newId);
-				id = newId;
+				LOGGER.warning("Component (class: '" + name + "', path: '" + path + "', page uri: " + iwc.getRequestURI() + ") with id '" + id + "' already exists!");
+			} else {
+				ids.put(id, name);
 			}
-			ids.put(id, name);
 		}
 
 		for (Iterator<UIComponent> it = component.getFacetsAndChildren(); it.hasNext();) {
