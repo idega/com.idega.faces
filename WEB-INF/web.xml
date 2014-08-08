@@ -40,17 +40,39 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
         <listener-class>com.idega.faces.IWFacesInstaller</listener-class>
     </listener>
     
+	<servlet>
+		<servlet-name>ErrorServlet</servlet-name>
+		<servlet-class>com.idega.faces.servlet.ErrorServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ErrorServlet</servlet-name>
+		<url-pattern>/error</url-pattern>
+	</servlet-mapping>
+    
     <!-- Use Documents Saved as *.xhtml -->
 	<context-param>
 		<param-name>javax.faces.DEFAULT_SUFFIX</param-name>
 		<param-value>.xhtml</param-value>
 	</context-param>
-	
-	<!-- Special Debug Output for Development -->
+
+	<!-- Turning off Apache MyFaces error handling -->
 	<context-param>
-		<param-name>facelets.DEVELOPMENT</param-name>
-		<param-value>true</param-value>
+		<param-name>org.apache.myfaces.ERROR_HANDLING</param-name>
+		<param-value>false</param-value>
 	</context-param>
+
+	<!-- Special Debug Output for Development -->
+	<context-param>	
+		<param-name>facelets.DEVELOPMENT</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+	<!-- Error handler -->
+	<error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/error</location>
+	</error-page>
 
 	<!-- Optional JSF-RI Parameters to Help Debug -->
 	<context-param>

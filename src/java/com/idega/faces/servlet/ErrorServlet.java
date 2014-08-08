@@ -1,5 +1,5 @@
 /**
- * @(#)ExceptionPreview.java    1.0.0 4:50:05 PM
+ * @(#)ErrorServlet.java    1.0.0 4:57:29 PM
  *
  * Idega Software hf. Source Code Licence Agreement x
  *
@@ -80,50 +80,99 @@
  *     License that was purchased to become eligible to receive the Source 
  *     Code after Licensee receives the source code. 
  */
-package com.idega.faces.presentation;
+package com.idega.faces.servlet;
+
+import java.io.IOException;
 
 import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import com.idega.facelets.ui.FaceletComponent;
-import com.idega.idegaweb.IWBundle;
+import com.idega.faces.presentation.ExceptionPreview;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.presentation.IWBaseComponent;
-import com.idega.presentation.IWContext;
+import com.idega.idegaweb.IWMainApplicationSettings;
+import com.idega.util.CoreUtil;
+import com.idega.util.StringUtil;
+import com.idega.util.URIUtil;
 
 /**
- * <p>JSF component to displaying errors</p>
+ * <p>Servlet for redirecting to error page</p>
  * <p>You can report about problems to: 
  * <a href="mailto:martynas@idega.is">Martynas Stakė</a></p>
  *
  * @version 1.0.0 Aug 6, 2014
  * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
  */
-public class ExceptionPreview extends IWBaseComponent {
+public class ErrorServlet extends HttpServlet {
 
-	public static final String FACELET_FILENAME = "exception.xhtml";
-		
-	private IWBundle bundle = null;
-
-	protected IWBundle getBundle() {
-		if (bundle == null) {
-			bundle = IWMainApplication.getDefaultIWMainApplication()
-					.getBundle("com.idega.faces");
-		}
-
-		return bundle;
-	}
+	private static final long serialVersionUID = 4736958903655782523L;
+	public static final String PROPERTY_PATH_TO_ERROR_COMPONENT = "path_to_error_component"; 
+	public static final String PROPERTY_STATUS_CODE = "javax.servlet.error.status_code";
+	public static final String PROPERTY_MESSAGE = "javax.servlet.error.message";
+	public static final String PROPERTY_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
+	public static final String PROPERTY_EXCEPTION = "javax.servlet.error.exception";
+	public static final String PROPERTY_REQUEST_URI = "javax.servlet.error.request_uri";
+	public static final String PROPERTY_SERVLET_NAME = "javax.servlet.error.servlet_name";
 
 	@Override
-	protected void initializeComponent(FacesContext context) {
-		super.initializeComponent(context);
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		resp.sendRedirect(getRedirectPath());
+		
+		Exception exception = (Exception) req.getAttribute(PROPERTY_EXCEPTION);
+		String requestUri = (String) req.getAttribute(PROPERTY_REQUEST_URI);
 
-		UIComponent facelet = getIWMainApplication(IWContext.getIWContext(context))
-				.createComponent(FaceletComponent.COMPONENT_TYPE);		
-		if (facelet instanceof FaceletComponent) {
-			((FaceletComponent) facelet).setFaceletURI(getBundle().getFaceletURI(FACELET_FILENAME));
+		StringBuilder sb = new StringBuilder();
+		sb.append("User failed to access URI: ").append(requestUri)
+		.append(" cause of: ");
+
+		CoreUtil.sendExceptionNotification(sb.toString(), exception);
+	}
+
+	protected String getRedirectPath() {
+		String path = getPathProperty();
+		if (StringUtil.isEmpty(path)) {
+			path = getUriToObject(ExceptionPreview.class);
 		}
 
-		add(facelet);
+		return path;
+	}
+
+	protected String getPathProperty() {
+		return getIWMainApplicationSettings()
+				.getProperty(PROPERTY_PATH_TO_ERROR_COMPONENT);
+	}
+	
+	private IWMainApplicationSettings iwMainApplicationSettings = null;
+
+	protected IWMainApplicationSettings getIWMainApplicationSettings() {
+		if (this.iwMainApplicationSettings == null && getIWMainApplication() != null) {
+			this.iwMainApplicationSettings = getIWMainApplication().getSettings();
+		}
+
+		return this.iwMainApplicationSettings;
+	}
+
+	private IWMainApplication iwMainApplication = null;
+
+	protected IWMainApplication getIWMainApplication() {
+		if (this.iwMainApplication == null) {
+			this.iwMainApplication = IWMainApplication.getDefaultIWMainApplication();
+		}
+
+		return this.iwMainApplication;
+	}
+
+	public String getUriToObject(Class<? extends UIComponent> objectClass) {
+		if (objectClass == null) {
+			return null;
+		}
+
+		URIUtil uri = new URIUtil(IWMainApplication.getDefaultIWMainApplication().getPublicObjectInstanciatorURI(objectClass));
+		uri.setParameter("uiObject", Boolean.TRUE.toString());
+
+		return uri.getUri();
 	}
 }
