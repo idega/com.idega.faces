@@ -4,7 +4,7 @@
 	xmlns="http://java.sun.com/xml/ns/javaee"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_1_2.xsd"
-version="1.2">
+	version="1.2">
 
 	<application>
 		<navigation-handler>com.idega.faces.navigation.IWNavigationHandlerImpl</navigation-handler>
@@ -19,4 +19,20 @@ version="1.2">
 		<component-class>com.idega.facelets.ui.util.AddResource</component-class>
 	</component>
 
+	<component>
+		<component-type>Exception preview</component-type>
+		<component-class>com.idega.faces.presentation.ExceptionPreview</component-class>
+		<component-extension>
+			<idegaweb-info>
+				<builder-visible>true</builder-visible>
+				<object-type>jsf.uicomponent</object-type>
+      		</idegaweb-info>
+		</component-extension>
+	</component>
+
+	<managed-bean>
+		<managed-bean-name>errorBean</managed-bean-name>
+		<managed-bean-class>com.idega.faces.presentation.bean.ErrorBean</managed-bean-class>
+		<managed-bean-scope>request</managed-bean-scope>
+	</managed-bean>
 </faces-config>

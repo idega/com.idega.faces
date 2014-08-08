@@ -1,0 +1,23 @@
+div.center {
+	position: relative;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+	width: 570px;
+}
+
+.center {
+	display: inline-block;
+}
+
+.centerText {
+	text-align: center;
+}
+
+img.image {
+	border: 1px white solid;
+	border-radius: 50px;
+	-moz-border-radius: 50px;
+	-webkit-border-radius: 50px;
+}
