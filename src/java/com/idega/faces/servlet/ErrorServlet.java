@@ -108,7 +108,9 @@ import com.idega.util.URIUtil;
 public class ErrorServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 4736958903655782523L;
-	public static final String PROPERTY_PATH_TO_ERROR_COMPONENT = "path_to_error_component"; 
+	public static final String PROPERTY_PATH_TO_ERROR_COMPONENT = "path_to_error_component";
+	public static final String PROPERTY_SEND_EXCEPTION_NOTIFICATION = "send_exception_notification";
+
 	public static final String PROPERTY_STATUS_CODE = "javax.servlet.error.status_code";
 	public static final String PROPERTY_MESSAGE = "javax.servlet.error.message";
 	public static final String PROPERTY_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
@@ -128,7 +130,19 @@ public class ErrorServlet extends HttpServlet {
 		sb.append("User failed to access URI: ").append(requestUri)
 		.append(" cause of: ");
 
-		CoreUtil.sendExceptionNotification(sb.toString(), exception);
+		if (sendExceptionNotification()) {
+			CoreUtil.sendExceptionNotification(sb.toString(), exception);
+		}
+	}
+
+	protected boolean sendExceptionNotification() {
+		IWMainApplicationSettings settings = getIWMainApplicationSettings();
+		if (settings != null) {
+			return settings.getBoolean(PROPERTY_SEND_EXCEPTION_NOTIFICATION, 
+					Boolean.FALSE);
+		}
+
+		return Boolean.FALSE;
 	}
 
 	protected String getRedirectPath() {
