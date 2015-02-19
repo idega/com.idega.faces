@@ -38,15 +38,10 @@ public class AddResource extends IWBaseComponent {
 	}
 
 	public String getResourcePath(FacesContext context) {
-		String resourcePath = getResourcePath();
-
-		if (resourcePath == null) {
-			ValueExpression ve = getValueExpression(resourcePathProperty);
-			resourcePath = ve == null ? null : ve.getValue(context.getELContext()).toString();
+		ValueExpression ve = getValueExpression(resourcePathProperty);
+		if(ve != null){
+			resourcePath = ve.getValue(context.getELContext()).toString();
 		}
-
-		setResourcePath(resourcePath);
-
 		return resourcePath;
 	}
 
