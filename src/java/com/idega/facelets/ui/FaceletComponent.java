@@ -1,5 +1,6 @@
 package com.idega.facelets.ui;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import javax.faces.context.FacesContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
+import com.idega.presentation.IWContext;
 import com.idega.servlet.filter.IWBundleResourceFilter;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -57,8 +59,9 @@ public class FaceletComponent extends IWBaseComponent {
 		try {
 			String resourceURI = getFaceletURI();
 
-			if (StringUtil.isEmpty(resourceURI))
+			if (StringUtil.isEmpty(resourceURI)) {
 				return;
+			}
 
 			List<UIParameter> paramList = new ArrayList<UIParameter>();
 			for (UIComponent c: getChildren()) {
@@ -68,10 +71,23 @@ public class FaceletComponent extends IWBaseComponent {
 			}
 
 			FaceletFactory faceletFactory = ((FaceletFactoryFactory) getBeanInstance(faceletFactoryFactoryBeanId)).createFaceletFactory(paramList);
-			Facelet facelet = faceletFactory.getFacelet(resourceURI);
+			Facelet facelet = null;
+			try {
+				facelet = faceletFactory.getFacelet(resourceURI);
+			} catch (Exception e) {}
+			if (facelet == null) {
+				IWContext iwc = IWContext.getIWContext(context);
+				File file = IWBundleResourceFilter.copyResourceFromJarToWebapp(iwc.getIWMainApplication(), resourceURI);
+				if (file == null) {
+					throw new IOException("Facelet " + resourceURI + " can not be found");
+				} else {
+					getLogger().info("Copied facelet " + resourceURI + " from JAR to web app");
+					facelet = faceletFactory.getFacelet(resourceURI);
+				}
+			}
 
 			facelet.apply(context, this);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
