@@ -13,6 +13,7 @@ package com.idega.faces;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.FacesException;
@@ -204,8 +205,13 @@ public class IWViewHandlerImpl extends ViewHandler{
 
 			IWContext iwc = IWContext.getIWContext(ctx);
 			Object localizations = iwc.getRequest().getAttribute(RepositoryService.REQUEST_LOCALIZATIONS);
-			if (localizations instanceof RepositoryResourceLocalizer)
-				ELUtil.getInstance().publishEvent((RepositoryResourceLocalizer) localizations);
+			if (localizations instanceof RepositoryResourceLocalizer) {
+				try {
+					ELUtil.getInstance().publishEvent((RepositoryResourceLocalizer) localizations);
+				} catch (Exception e) {
+					log.log(Level.WARNING, "Error publishing event " + localizations, e);
+				}
+			}
 		} else {
 			throw new RuntimeException ("No ViewHandler Found for getResourceURL");
 		}
