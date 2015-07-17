@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.el.ValueExpression;
 import javax.faces.component.UIComponent;
@@ -77,7 +78,11 @@ public class FaceletComponent extends IWBaseComponent {
 			} catch (Exception e) {}
 			if (facelet == null) {
 				IWContext iwc = IWContext.getIWContext(context);
-				File file = IWBundleResourceFilter.copyResourceFromJarToWebapp(iwc.getIWMainApplication(), resourceURI);
+				IWMainApplication iwma = iwc.getIWMainApplication();
+
+				doDeleteInvalidFacelet(iwma, resourceURI);
+
+				File file = IWBundleResourceFilter.copyResourceFromJarToWebapp(iwma, resourceURI);
 				if (file == null) {
 					throw new IOException("Facelet " + resourceURI + " can not be found");
 				} else {
@@ -89,6 +94,20 @@ public class FaceletComponent extends IWBaseComponent {
 			facelet.apply(context, this);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private void doDeleteInvalidFacelet(IWMainApplication iwma, String resourceURI) {
+		try {
+			String realPath = iwma.getRealPath(resourceURI);
+			File invalidFacelet = new File(realPath);
+			if (invalidFacelet.exists()) {
+				invalidFacelet.delete();
+			} else {
+				getLogger().warning("File " + invalidFacelet + " does not exist");
+			}
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error deleting invalid facelet: " + resourceURI, e);
 		}
 	}
 
