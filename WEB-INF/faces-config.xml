@@ -34,6 +34,17 @@
 		</component-extension>
 	</component>
 
+    <component>
+        <component-type>DWR Tester</component-type>
+        <component-class>com.idega.faces.presentation.DWRTester</component-class>
+        <component-extension>
+            <idegaweb-info>
+                <builder-visible>true</builder-visible>
+                <object-type>jsf.uicomponent</object-type>
+            </idegaweb-info>
+        </component-extension>
+    </component>
+
 	<managed-bean>
 		<managed-bean-name>errorBean</managed-bean-name>
 		<managed-bean-class>com.idega.faces.presentation.bean.ErrorBean</managed-bean-class>

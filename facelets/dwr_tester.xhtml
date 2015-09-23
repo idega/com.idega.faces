@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html   
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:ui="http://java.sun.com/jsf/facelets">
+    <head>
+        <script type="text/javascript">
+			function addListener(element, eventName,
+					handler) {
+				if (element.addEventListener) {
+					element.addEventListener(eventName,
+							handler, false);
+				} else if (element.attachEvent) {
+					element.attachEvent('on'
+							+ eventName, handler);
+				} else {
+					element['on' + eventName] = handler;
+				}
+			}
+
+			function removeListener(element, eventName,
+					handler) {
+				if (element.addEventListener) {
+					element.removeEventListener(
+							eventName, handler, false);
+				} else if (element.detachEvent) {
+					element.detachEvent('on'
+							+ eventName, handler);
+				} else {
+					element['on' + eventName] = null;
+				}
+			}
+
+			function executeQuery() {
+				LazyLoader.loadMultiple(['/dwr/engine.js', '/dwr/interface/DOFWSClient.js'], function() {
+					DOFWSClient.getGrasleppaVesselsForUser('5411850389');
+				});
+			}
+			
+			// addListener(document.getElementById('tester'), 'click', this.value);
+		</script>
+    </head>
+    <body>
+        <input id="action"/>
+        <input 
+            id="tester"
+            type="button" 
+            value="Test!"
+            onclick="executeQuery()"/>
+    </body>
+</html>
