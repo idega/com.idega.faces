@@ -83,6 +83,8 @@
 package com.idega.faces.servlet;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.faces.component.UIComponent;
 import javax.servlet.ServletException;
@@ -125,6 +127,12 @@ public class ErrorServlet extends HttpServlet {
 		Object exc = req.getAttribute(PROPERTY_EXCEPTION);
 		if (exc instanceof Throwable) {
 			Throwable exception = (Throwable) exc;
+
+			IWMainApplicationSettings settings = getIWMainApplicationSettings();
+			if (settings != null && settings.getBoolean("print_faces_exception", false)) {
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error accessing: " + req.getRequestURI() + req.getQueryString(), exception);
+			}
+
 			String requestUri = (String) req.getAttribute(PROPERTY_REQUEST_URI);
 
 			String message = "User failed to access URI: ".concat(StringUtil.isEmpty(requestUri) ? "unknown" : requestUri);
