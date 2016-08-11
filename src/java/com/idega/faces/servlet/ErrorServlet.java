@@ -95,6 +95,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.idega.faces.presentation.ExceptionPreview;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
+import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
@@ -128,12 +129,12 @@ public class ErrorServlet extends HttpServlet {
 		if (exc instanceof Throwable) {
 			Throwable exception = (Throwable) exc;
 
+			String requestUri = (String) req.getAttribute(PROPERTY_REQUEST_URI);
+
 			IWMainApplicationSettings settings = getIWMainApplicationSettings();
 			if (settings != null && settings.getBoolean("print_faces_exception", false)) {
-				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error accessing: " + req.getRequestURI() + req.getQueryString(), exception);
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error accessing: " + (StringUtil.isEmpty(requestUri) ? "unknown" : requestUri) + CoreConstants.QMARK + req.getQueryString(), exception);
 			}
-
-			String requestUri = (String) req.getAttribute(PROPERTY_REQUEST_URI);
 
 			String message = "User failed to access URI: ".concat(StringUtil.isEmpty(requestUri) ? "unknown" : requestUri);
 
