@@ -131,8 +131,9 @@ public class FaceletComponent extends IWBaseComponent {
 	}
 
 	public String getFaceletURI() {
-		if (faceletURI != null)
+		if (faceletURI != null) {
 			return faceletURI;
+		}
 
 		if (faceletURI == null)	{
 			ValueExpression vb = getValueExpression("faceletURI");
@@ -150,7 +151,16 @@ public class FaceletComponent extends IWBaseComponent {
 		String faceletFile = getFaceletFile();
 		if (!StringUtil.isEmpty(bundleIdentifier) && !StringUtil.isEmpty(faceletFile)) {
 			IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(bundleIdentifier);
-			faceletURI = bundle.getFaceletURI(faceletFile);
+			if (bundle == null) {
+				getLogger().warning("Error getting bundle: " + bundleIdentifier + ", can not load facelet: " + faceletFile);
+				return null;
+			}
+
+			try {
+				faceletURI = bundle.getFaceletURI(faceletFile);
+			} catch (Exception e) {
+				getLogger().log(Level.WARNING, "Error getting facelet " + faceletFile + " from bundle " + bundleIdentifier, e);
+			}
 		}
 
 		return faceletURI;
