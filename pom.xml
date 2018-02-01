@@ -8,17 +8,6 @@
   <packaging>jar</packaging>
   <artifactId>com.idega.faces</artifactId>
   <name>idegaWeb JavaServer Faces</name>
-  <scm>
-    
-    <connection>scm:cvs:ext:idegaweb@code.idega.com:/idega/cvs:com.idega.block.platform/com.idega.faces/</connection>
-    <developerConnection>scm:cvs:ext:idegaweb@code.idega.com:/idega/cvs:com.idega.block.platform/com.idega.faces/</developerConnection> 
-    
-    <!--
-    <connection>scm:cvs:ext:idegaweb@code.idega.com:/idega/cvs:com.idega.block.platform/com.idega.faces/</connection>
-    <developerConnection>scm:cvs:ext:idegaweb@code.idega.com:/idega/cvs:com.idega.block.platform/com.idega.faces/</developerConnection>
-    -->
-    <tag>com_idega_block_platform-4_1_2</tag>
-  </scm>
 
   <developers>
     <developer>
@@ -45,5 +34,11 @@
       <version>1.1.14</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+    	<groupId>org.glassfish.web</groupId>
+		<artifactId>el-impl</artifactId>
+		<version>2.2</version>
+		<type>jar</type>
+	</dependency>
   </dependencies>
 </project>
