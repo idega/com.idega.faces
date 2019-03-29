@@ -87,6 +87,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.component.UIComponent;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -123,8 +124,9 @@ public class ErrorServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		resp.sendRedirect(getRedirectPath());
-
+		RequestDispatcher dispatcher = getServletContext()
+			      .getRequestDispatcher(getRedirectPath());
+			    dispatcher.forward(req, resp);
 		Object exc = req.getAttribute(PROPERTY_EXCEPTION);
 		if (exc instanceof Throwable) {
 			Throwable exception = (Throwable) exc;
